@@ -24,9 +24,10 @@ export async function recordWav(): Promise<{ stop: () => Promise<File> }> {
   let context: AudioContext | undefined;
   try {
     context = new AudioContext();
-    await context.resume();
-    const source = context.createMediaStreamSource(stream);
-    const node = context.createScriptProcessor(4096, 1, 1);
+    const audioContext = context;
+    await audioContext.resume();
+    const source = audioContext.createMediaStreamSource(stream);
+    const node = audioContext.createScriptProcessor(4096, 1, 1);
     const chunks: Float32Array[] = [];
     node.onaudioprocess = (event) => chunks.push(new Float32Array(event.inputBuffer.getChannelData(0)));
     source.connect(node); node.connect(context.destination);
@@ -34,7 +35,7 @@ export async function recordWav(): Promise<{ stop: () => Promise<File> }> {
     return { stop: async () => {
       if (stopped) throw new Error("Recording already stopped");
       stopped = true; stream.getTracks().forEach((track) => track.stop()); node.disconnect(); source.disconnect(); node.onaudioprocess = null;
-      const blob = encodeWav(chunks, context.sampleRate); await context.close();
+      const blob = encodeWav(chunks, audioContext.sampleRate); await audioContext.close();
       if (blob.size < 2048) throw new Error("Recording was empty");
       return new File([blob], "recording.wav", { type: "audio/wav" });
     } };

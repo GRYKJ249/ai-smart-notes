@@ -19,6 +19,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiCodeAssistRouteImport } from './routes/api/code-assist'
 import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat/index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat/$threadId'
 
@@ -71,6 +72,11 @@ const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
   path: '/api/generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/api/code-assist': typeof ApiCodeAssistRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/api/code-assist': typeof ApiCodeAssistRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/api/code-assist': typeof ApiCodeAssistRoute
   '/api/edit-image': typeof ApiEditImageRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/api/code-assist'
     | '/api/edit-image'
     | '/api/generate-image'
+    | '/api/transcribe'
     | '/chat/$threadId'
     | '/chat/'
   fileRoutesByTo: FileRoutesByTo
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/api/code-assist'
     | '/api/edit-image'
     | '/api/generate-image'
+    | '/api/transcribe'
     | '/chat/$threadId'
     | '/chat'
   id:
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/api/code-assist'
     | '/api/edit-image'
     | '/api/generate-image'
+    | '/api/transcribe'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   ApiCodeAssistRoute: typeof ApiCodeAssistRoute
   ApiEditImageRoute: typeof ApiEditImageRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
       path: '/'
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCodeAssistRoute: ApiCodeAssistRoute,
   ApiEditImageRoute: ApiEditImageRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
