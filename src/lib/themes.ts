@@ -58,6 +58,14 @@ export const PALETTES: Palette[] = FAMILIES.flatMap((family) =>
 
 export const DEFAULT_PALETTE_ID = "mono-cyan";
 
+export type SimpleTheme = "walnut" | "white" | "black";
+
+export const SIMPLE_THEMES: { id: SimpleTheme; label: string; labelAr: string; paletteId: string }[] = [
+  { id: "white", label: "White", labelAr: "أبيض", paletteId: "paper-cyan" },
+  { id: "black", label: "Black", labelAr: "أسود", paletteId: "mono-cyan" },
+  { id: "walnut", label: "Walnut", labelAr: "لوز", paletteId: "ember-amber" },
+];
+
 const ok = (l: number, c: number, h: number, a?: number) =>
   `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${(((h % 360) + 360) % 360).toFixed(1)}${a !== undefined ? ` / ${a}` : ""})`;
 

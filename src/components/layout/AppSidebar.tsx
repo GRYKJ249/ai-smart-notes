@@ -1,14 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Code2, ImageIcon, LayoutDashboard, Menu, MessageSquare, PanelLeftClose, PanelLeftOpen, Settings, X } from "lucide-react";
+import { Check, Code2, ImageIcon, LayoutDashboard, Menu, PanelLeftClose, PanelLeftOpen, Settings, X } from "lucide-react";
 import { OperaLogoMark } from "@/components/brand/OperaLogoMark";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/useProfile";
 import { useLang } from "@/lib/i18n";
+import { useTheme } from "@/components/theme/ThemeProvider";
+import { SIMPLE_THEMES } from "@/lib/themes";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const links = [
-  { to: "/chat", icon: MessageSquare, en: "Chat workspace", ar: "المحادثات" },
   { to: "/studio", icon: ImageIcon, en: "Creative Studio", ar: "استوديو الصور" },
   { to: "/code", icon: Code2, en: "Code workspace", ar: "بيئة الأكواد" },
   { to: "/dashboard", icon: LayoutDashboard, en: "Dashboard & profile", ar: "لوحة التحكم والملف" },
@@ -17,6 +19,7 @@ const links = [
 export function AppSidebar({ children }: { children: React.ReactNode }) {
   const { t, lang } = useLang();
   const { username, displayName, avatarUrl } = useProfile();
+  const { palette, setPaletteId } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const name = displayName || username || t("Your account", "حسابك");
@@ -43,9 +46,25 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
           <UserAvatar src={avatarUrl} name={name} className="h-10 w-10 shrink-0" />
           {!collapsed && <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{name}</p>{username && <p dir="ltr" className="truncate text-xs text-muted-foreground">{`@${username}`}</p>}</div>}
         </div>
-        <Button variant="ghost" className="mt-2 hidden w-full md:flex" onClick={() => setCollapsed((value) => !value)} aria-label={t("Toggle sidebar", "تبديل الشريط الجانبي")}>
-          {collapsed ? <PanelLeftOpen /> : <><PanelLeftClose /><span>{t("Collapse", "طي الشريط")}</span></>}
-        </Button>
+        <div className="mt-2 hidden items-center gap-1 md:flex">
+          <Button variant="ghost" className="min-w-0 flex-1" onClick={() => setCollapsed((value) => !value)} aria-label={t("Toggle sidebar", "تبديل الشريط الجانبي")}>
+            {collapsed ? <PanelLeftOpen /> : <><PanelLeftClose /><span>{t("Collapse", "طي الشريط")}</span></>}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label={t("Theme settings", "إعدادات المظهر")}><Settings /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {SIMPLE_THEMES.map((theme) => (
+                <DropdownMenuItem key={theme.id} onSelect={() => setPaletteId(theme.paletteId)}>
+                  <span className={`theme-dot theme-dot-${theme.id}`} />
+                  <span className="flex-1">{t(theme.label, theme.labelAr)}</span>
+                  {palette.id === theme.paletteId && <Check className="h-4 w-4" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </aside>
   );

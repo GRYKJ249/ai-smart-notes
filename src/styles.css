@@ -148,6 +148,17 @@
   }
 }
 
+@utility theme-dot {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.theme-dot-white { background: oklch(0.98 0 0); }
+.theme-dot-black { background: oklch(0.14 0 0); }
+.theme-dot-walnut { background: oklch(0.48 0.09 55); }
+
 /* ---------- Glass & glow utilities ---------- */
 @utility glass {
   background: color-mix(in oklab, var(--card) 92%, transparent);
