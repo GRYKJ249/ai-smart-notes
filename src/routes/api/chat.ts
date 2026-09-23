@@ -13,6 +13,7 @@ type ChatRequestBody = { messages?: unknown; language?: unknown };
 const SYSTEM_PROMPT = `You are Opera AI, the intelligent assistant at the center of the Opera AI workspace.
 Be precise, friendly and concise. Use Markdown. Always put code in fenced code blocks with a language tag.
 Answer in the same language the user writes in (Arabic or English).
+You can inspect attached images and PDF documents. Describe and analyze their actual contents carefully. For text documents, use the extracted text supplied by the app.
 
 IMAGE REQUESTS vs CODING TASKS — this distinction is critical:
 - Opera AI has a built-in image generator. When the user asks you to create, draw, paint, design or generate a
@@ -48,10 +49,27 @@ export const Route = createFileRoute("/api/chat")({
           fetch: runIdFetch.fetch,
         });
 
+        const normalizedMessages = (messages as UIMessage[]).map((message) => ({
+          ...message,
+          parts: message.parts.flatMap((part) => {
+            if (part.type !== "file") return [part];
+            const file = part as { type: "file"; mediaType: string; filename?: string; url: string };
+            if (file.mediaType.startsWith("image/") || file.mediaType === "application/pdf") return [part];
+            if (file.mediaType.startsWith("text/") || file.mediaType === "application/json") {
+              const marker = ";base64,";
+              const encoded = file.url.includes(marker) ? file.url.split(marker)[1] : "";
+              if (!encoded) return [];
+              const text = Buffer.from(encoded, "base64").toString("utf8");
+              return [{ type: "text" as const, text: `\nAttached document ${file.filename ?? "document"}:\n${text.slice(0, 120000)}` }];
+            }
+            return [];
+          }),
+        }));
+
         const result = streamText({
           model: lovable.responses("openai/gpt-6-astra"),
           system: SYSTEM_PROMPT,
-          messages: await convertToModelMessages(messages as UIMessage[]),
+          messages: await convertToModelMessages(normalizedMessages),
           abortSignal: request.signal,
           providerOptions: {
             openai: {

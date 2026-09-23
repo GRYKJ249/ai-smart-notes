@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowUp, AudioLines, Image, Lightbulb, Mic, Paperclip, SlidersHorizontal, Sparkles, Zap } from "lucide-react";
+import { AudioLines, Image, Lightbulb, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { OperaLogoMark } from "@/components/brand/OperaLogoMark";
 import { createThread } from "@/lib/local-db";
 import { useLang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { ChatComposer } from "@/components/chat/ChatComposer";
+import type { FileUIPart } from "ai";
 
 export const PENDING_KEY = "opera-pending-message";
 
@@ -30,20 +32,18 @@ function ChatIndex() {
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingFilesRef = useRef<FileUIPart[]>([]);
 
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-
-  const start = (text: string) => {
+  const start = (text: string, files: FileUIPart[] = []) => {
     const message = text.trim();
-    if (!message || busy) return;
+    if ((!message && files.length === 0) || busy) return;
 
     if (typeof window !== "undefined") sessionStorage.setItem(PENDING_KEY, message);
+    if (typeof window !== "undefined") sessionStorage.setItem(`${PENDING_KEY}-files`, JSON.stringify(files));
 
     setBusy(true);
-    const title = message.slice(0, 48) + (message.length > 48 ? "…" : "");
+    const titleSource = message || files[0]?.filename || "New chat";
+    const title = titleSource.slice(0, 48) + (titleSource.length > 48 ? "…" : "");
     try {
       const thread = createThread(title);
       void queryClient.invalidateQueries({ queryKey: ["chat-threads"] });
@@ -61,39 +61,9 @@ function ChatIndex() {
         {t("Opera AI", "أوبرا AI")}
       </h1>
 
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          start(input);
-        }}
-        className="mt-8 w-full max-w-3xl"
-      >
-        <div className="chat-composer rounded-[2rem] border border-border bg-card p-3 shadow-2xl sm:p-4">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                start(input);
-              }
-            }}
-            dir={lang === "ar" ? "rtl" : "ltr"}
-            rows={2}
-            placeholder={t("Ask anything privately", "اسأل عن أي حاجة بخصوصية")}
-            className="max-h-40 min-h-[72px] w-full resize-none bg-transparent px-2 py-1 text-xl text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <div className="flex items-center gap-1.5">
-            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-full" aria-label={t("Attach a file", "إرفاق ملف")}><Paperclip /></Button>
-            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-full" aria-label={t("Options", "الخيارات")}><SlidersHorizontal /></Button>
-            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-full" onClick={() => setInput((value) => (value.startsWith("/image ") ? value : `/image ${value}`))} aria-label={t("Generate an image", "توليد صورة")}><Zap /></Button>
-            <div className="flex-1" />
-            <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-full" aria-label={t("Voice input", "إدخال صوتي")}><Mic /></Button>
-            <Button type="submit" size="icon" disabled={!input.trim() || busy} className="h-11 w-11 rounded-full" aria-label={t("Send", "إرسال")}><ArrowUp /></Button>
-          </div>
-        </div>
-      </form>
+      <div className="mt-8 w-full">
+        <ChatComposer status={busy ? "submitted" : "ready"} disabled={busy} onSubmit={({ text, files }) => start(text, files)} />
+      </div>
       <div className="mt-5 flex max-w-3xl flex-wrap justify-center gap-2">
         {[
           { icon: Lightbulb, en: "Chat suggestions", ar: "اقتراحات المحادثة", value: "Give me a useful idea" },

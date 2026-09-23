@@ -7,6 +7,7 @@
  */
 
 import { getFile, putFile, readTable, removeFiles, writeTable, type Row } from "@/lib/browser-store";
+import type { FileUIPart } from "ai";
 
 export { getFile, putFile, removeFiles };
 
@@ -62,6 +63,7 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   image_url?: string | null;
+  files?: FileUIPart[];
   created_at: string;
 };
 
@@ -76,6 +78,7 @@ export function addMessage(input: {
   role: "user" | "assistant";
   content: string;
   image_url?: string | null;
+  files?: FileUIPart[];
 }): Message {
   const message: Message = { id: uid(), created_at: now(), image_url: null, ...input };
   writeTable("chat_messages", [...(readTable("chat_messages") as Row[]), message as unknown as Row]);

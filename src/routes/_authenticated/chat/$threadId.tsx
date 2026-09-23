@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Brain, ImagePlus, Loader2, Sparkles, Square } from "lucide-react";
+import { Brain, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { OperaLogoMark } from "@/components/brand/OperaLogoMark";
 import { Markdown } from "@/components/chat/Markdown";
@@ -13,6 +13,8 @@ import { useLang } from "@/lib/i18n";
 import { detectImageRequest } from "@/lib/image-intent";
 import { streamImage } from "@/lib/stream-image";
 import { PENDING_KEY } from "./index";
+import { AttachmentPreview, ChatComposer } from "@/components/chat/ChatComposer";
+import type { FileUIPart } from "ai";
 
 export const Route = createFileRoute("/_authenticated/chat/$threadId")({
   head: () => ({
@@ -64,7 +66,7 @@ function ThreadPage() {
           messages.push({
             id: row.id,
             role: row.role,
-            parts: [{ type: "text" as const, text: row.content }],
+            parts: [{ type: "text" as const, text: row.content }, ...(row.files ?? [])],
           });
         }
       }
@@ -86,7 +88,6 @@ function ThreadPage() {
 function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread }) {
   const { t, lang } = useLang();
   const queryClient = useQueryClient();
-  const [input, setInput] = useState("");
   const [imageTurns, setImageTurns] = useState<ImageTurn[]>(initial.images);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -147,21 +148,22 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
     }
   };
 
-  const send = (raw: string) => {
+  const send = (raw: string, files: FileUIPart[] = []) => {
     const text = raw.trim();
-    if (!text) return;
+    if (!text && files.length === 0) return;
 
-    addMessage({ thread_id: threadId, role: "user", content: text });
+    addMessage({ thread_id: threadId, role: "user", content: text, files });
 
     const isFirst = messages.length === 0 && imageTurns.length === 0;
     if (isFirst) {
-      const title = text.slice(0, 48) + (text.length > 48 ? "…" : "");
+      const titleSource = text || files[0]?.filename || "New chat";
+      const title = titleSource.slice(0, 48) + (titleSource.length > 48 ? "…" : "");
       updateThread(threadId, { title });
       void queryClient.invalidateQueries({ queryKey: ["chat-threads"] });
     }
 
     const intent = detectImageRequest(text);
-    if (intent.isImage) {
+    if (intent.isImage && files.length === 0) {
       // Show the user's request in the transcript without calling the text model.
       setMessages((current) => [
         ...current,
@@ -171,15 +173,7 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
       return;
     }
 
-    sendMessage({ text });
-  };
-
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (busy || !input.trim()) return;
-    const text = input;
-    setInput("");
-    send(text);
+    sendMessage({ text: text || t("Analyze these attachments", "حلّل هذه المرفقات"), files });
   };
 
   // A message typed on the "new chat" screen is handed over through sessionStorage.
@@ -188,10 +182,13 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
     if (pendingHandled.current || typeof window === "undefined") return;
     pendingHandled.current = true;
     const pending = sessionStorage.getItem(PENDING_KEY);
-    if (!pending) return;
+    const storedFiles = sessionStorage.getItem(`${PENDING_KEY}-files`);
+    const pendingFiles = storedFiles ? JSON.parse(storedFiles) as FileUIPart[] : [];
+    if (!pending && pendingFiles.length === 0) return;
     sessionStorage.removeItem(PENDING_KEY);
+    sessionStorage.removeItem(`${PENDING_KEY}-files`);
     // Wait one tick so the chat stream is listening before the first message goes out.
-    window.setTimeout(() => send(pending), 0);
+    window.setTimeout(() => send(pending ?? "", pendingFiles), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -279,6 +276,9 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
                         <p className="mt-2 whitespace-pre-wrap">{reasoning}</p>
                       </details>
                     )}
+                    {message.parts.some((part) => part.type === "file") && (
+                      <AttachmentPreview files={message.parts.filter((part): part is FileUIPart => part.type === "file")} />
+                    )}
                     {text && (
                       <div
                         className={
@@ -307,47 +307,9 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
         </div>
       </div>
 
-      <form onSubmit={submit} className="border-t border-glass-border px-4 py-4">
-        <div className="glass-strong mx-auto flex max-w-3xl items-end gap-2 rounded-xl p-2">
-          <button
-            type="button"
-            onClick={() => setInput((value) => (value.startsWith("/image ") ? value : `/image ${value}`))}
-            className="btn-ghost !rounded-xl !p-3"
-            aria-label={t("Generate an image", "توليد صورة")}
-            title={t("Generate an image", "توليد صورة")}
-          >
-            <ImagePlus className="h-4 w-4" />
-          </button>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                void submit(e);
-              }
-            }}
-            dir={lang === "ar" ? "rtl" : "ltr"}
-            rows={1}
-            placeholder={t("Message Opera AI… or /image an orbital city", "اكتب رسالتك لأوبرا… أو /image مدينة مدارية")}
-            className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-3 py-2.5 text-sm outline-none"
-          />
-          {busy ? (
-            <button type="button" onClick={stop} className="btn-ghost !rounded-xl !p-3" aria-label="stop">
-              <Square className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="btn-hero !rounded-xl !px-3.5 !py-3 disabled:opacity-40"
-              aria-label="send"
-            >
-              <ArrowUp className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </form>
+      <div className="border-t border-glass-border px-4 py-4">
+        <ChatComposer status={status} disabled={generatingImage} onStop={stop} onSubmit={({ text, files }) => send(text, files)} />
+      </div>
     </div>
   );
 }
