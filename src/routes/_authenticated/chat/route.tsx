@@ -56,7 +56,9 @@ function ChatLayout() {
       )}
 
       <aside
-        className={`fixed inset-y-0 z-40 flex w-72 flex-col border-e border-border bg-card transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 z-40 w-72 flex-col border-e border-border bg-card transition-transform md:static md:translate-x-0 ${
+          params.threadId ? "flex" : "hidden"
+        } ${
           lang === "ar" ? "right-0 border-s" : "left-0 border-e"
         } ${open ? "translate-x-0" : lang === "ar" ? "translate-x-full" : "-translate-x-full"} md:translate-x-0`}
       >
@@ -112,7 +114,7 @@ function ChatLayout() {
       </aside>
 
       <main className="relative flex min-w-0 flex-1 flex-col">
-        {!open && (
+        {!open && params.threadId && (
           <button
             type="button"
             onClick={() => setOpen(true)}
