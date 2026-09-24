@@ -235,7 +235,7 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
                   <button
                     key={sample}
                     type="button"
-                    onClick={() => setInput(sample)}
+                    onClick={() => send(sample)}
                     className="glass rounded-xl px-4 py-3 text-start text-sm transition hover:border-primary/50"
                   >
                     <Sparkles className="mb-1.5 h-4 w-4 text-primary" />

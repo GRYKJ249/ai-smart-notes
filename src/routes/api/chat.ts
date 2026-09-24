@@ -49,9 +49,9 @@ export const Route = createFileRoute("/api/chat")({
           fetch: runIdFetch.fetch,
         });
 
-        const normalizedMessages = (messages as UIMessage[]).map((message) => ({
+        const normalizedMessages: UIMessage[] = (messages as UIMessage[]).map((message) => ({
           ...message,
-          parts: message.parts.flatMap((part) => {
+          parts: message.parts.flatMap((part): UIMessage["parts"] => {
             if (part.type !== "file") return [part];
             const file = part as { type: "file"; mediaType: string; filename?: string; url: string };
             if (file.mediaType.startsWith("image/") || file.mediaType === "application/pdf") return [part];
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/api/chat")({
               const encoded = file.url.includes(marker) ? file.url.split(marker)[1] : "";
               if (!encoded) return [];
               const text = Buffer.from(encoded, "base64").toString("utf8");
-              return [{ type: "text" as const, text: `\nAttached document ${file.filename ?? "document"}:\n${text.slice(0, 120000)}` }];
+              return [{ type: "text", text: `\nAttached document ${file.filename ?? "document"}:\n${text.slice(0, 120000)}` }];
             }
             return [];
           }),

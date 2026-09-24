@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LangProvider } from "@/lib/i18n";
 
@@ -132,7 +133,9 @@ function RootComponent() {
         <LangProvider>
           <AuthProvider>
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
+            <TooltipProvider>
+              <Outlet />
+            </TooltipProvider>
             <Toaster />
           </AuthProvider>
         </LangProvider>
