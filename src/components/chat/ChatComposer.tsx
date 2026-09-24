@@ -89,7 +89,7 @@ export function ChatComposer({
             {t("Images & documents", "صور ومستندات")}
           </span>
         </PromptInputTools>
-        <PromptInputSubmit status={status} onStop={onStop} disabled={disabled && status === "ready"} />
+        <PromptInputSubmit status={status} {...(onStop ? { onStop } : {})} disabled={!!disabled && status === "ready"} />
       </PromptInputFooter>
     </PromptInput>
   );
