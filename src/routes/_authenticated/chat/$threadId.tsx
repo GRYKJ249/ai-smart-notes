@@ -173,7 +173,7 @@ function Thread({ threadId, initial }: { threadId: string; initial: LoadedThread
       return;
     }
 
-    sendMessage({ text: text || t("Analyze these attachments", "حلّل هذه المرفقات"), files });
+    sendMessage({ text: text || t("Describe and analyze these attachments in detail.", "صف وحلّل هذه المرفقات بالتفصيل."), files });
   };
 
   // A message typed on the "new chat" screen is handed over through sessionStorage.

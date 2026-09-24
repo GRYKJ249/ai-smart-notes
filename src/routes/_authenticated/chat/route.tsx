@@ -114,18 +114,18 @@ function ChatLayout() {
       </aside>
 
       <main className="relative flex min-w-0 flex-1 flex-col">
-        {!open && params.threadId && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label={t("Conversations", "المحادثات")}
-            className={`glass fixed bottom-24 z-30 flex items-center gap-2 rounded-full px-3 py-2 text-xs shadow-lg md:hidden ${
-              lang === "ar" ? "right-3" : "left-3"
-            }`}
-          >
-            <Menu className="h-4 w-4" />
-            {t("Conversations", "المحادثات")}
-          </button>
+        {params.threadId && (
+          <div className="flex shrink-0 items-center border-b border-glass-border px-3 py-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label={t("Conversations", "المحادثات")}
+              className="glass flex items-center gap-2 rounded-full px-3 py-1.5 text-xs"
+            >
+              <Menu className="h-4 w-4" />
+              {t("Conversations", "المحادثات")}
+            </button>
+          </div>
         )}
         <Outlet />
       </main>
