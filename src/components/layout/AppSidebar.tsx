@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, Code2, ImageIcon, LayoutDashboard, Menu, PanelLeftClose, PanelLeftOpen, Settings, X } from "lucide-react";
 import { OperaLogoMark } from "@/components/brand/OperaLogoMark";
@@ -22,6 +22,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
   const { palette, setPaletteId } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const inChat = useRouterState({ select: (s) => s.location.pathname.startsWith("/chat") });
   const name = displayName || username || t("Your account", "حسابك");
 
   const sidebar = (
@@ -74,7 +75,7 @@ export function AppSidebar({ children }: { children: React.ReactNode }) {
     <div className={`fixed inset-y-0 z-50 transition-transform md:static md:translate-x-0 ${lang === "ar" ? "right-0" : "left-0"} ${mobileOpen ? "translate-x-0" : lang === "ar" ? "translate-x-full" : "-translate-x-full"}`}>{sidebar}</div>
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <header className="flex h-16 shrink-0 items-center justify-between px-3 md:hidden">
-        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setMobileOpen(true)} aria-label={t("Open menu", "فتح القائمة")}><Menu /></Button>
+        {inChat ? <Button variant="ghost" size="sm" className="rounded-full" onClick={() => window.dispatchEvent(new Event("open-conversations"))} aria-label={t("Conversations", "المحادثات")}><Menu />{t("Conversations", "المحادثات")}</Button> : <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setMobileOpen(true)} aria-label={t("Open menu", "فتح القائمة")}><Menu /></Button>}
         <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase text-secondary-foreground">Free</span>
         <Button asChild variant="ghost" size="icon" className="rounded-full"><Link to="/dashboard" aria-label={t("Settings", "الإعدادات")}><Settings /></Link></Button>
       </header>

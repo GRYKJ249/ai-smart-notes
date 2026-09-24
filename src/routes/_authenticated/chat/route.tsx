@@ -32,6 +32,11 @@ function ChatLayout() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const params = useParams({ strict: false }) as { threadId?: string };
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("open-conversations", onOpen);
+    return () => window.removeEventListener("open-conversations", onOpen);
+  }, []);
 
   const { data: threads } = useQuery({
     queryKey: ["chat-threads"],
@@ -57,7 +62,7 @@ function ChatLayout() {
 
       <aside
         className={`fixed inset-y-0 z-40 w-72 flex-col border-e border-border bg-card transition-transform md:static md:translate-x-0 ${
-          params.threadId ? "flex" : "hidden"
+          "flex"
         } ${
           lang === "ar" ? "right-0 border-s" : "left-0 border-e"
         } ${open ? "translate-x-0" : lang === "ar" ? "translate-x-full" : "-translate-x-full"} md:translate-x-0`}
@@ -114,19 +119,6 @@ function ChatLayout() {
       </aside>
 
       <main className="relative flex min-w-0 flex-1 flex-col">
-        {params.threadId && (
-          <div className="flex shrink-0 items-center border-b border-glass-border px-3 py-2 md:hidden">
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              aria-label={t("Conversations", "المحادثات")}
-              className="glass flex items-center gap-2 rounded-full px-3 py-1.5 text-xs"
-            >
-              <Menu className="h-4 w-4" />
-              {t("Conversations", "المحادثات")}
-            </button>
-          </div>
-        )}
         <Outlet />
       </main>
     </div>
