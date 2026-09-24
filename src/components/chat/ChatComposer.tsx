@@ -100,10 +100,14 @@ export function AttachmentPreview({ files }: { files: FileUIPart[] }) {
   return (
     <div className="flex flex-wrap gap-2">
       {files.map((file, index) => (
+        file.mediaType.startsWith("image/") && file.url ? (
+          <img key={`${file.filename}-${index}`} src={file.url} alt={file.filename ?? "Image"} className="h-32 w-32 rounded-lg border border-border object-cover" />
+        ) : (
         <span key={`${file.filename}-${index}`} className="inline-flex max-w-full items-center gap-2 rounded-md border border-border bg-muted px-2.5 py-1.5 text-xs">
-          {file.mediaType.startsWith("image/") ? <ImagePlus className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+          <FileText className="h-3.5 w-3.5" />
           <span className="max-w-48 truncate">{file.filename ?? tFallback(file.mediaType)}</span>
         </span>
+        )
       ))}
     </div>
   );

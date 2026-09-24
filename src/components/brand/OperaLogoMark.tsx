@@ -1,4 +1,5 @@
-import logoAsset from "@/assets/opera-ai-mark.png.asset.json";
+import logoUrl from "@/assets/opera-ai-mark.png";
+const logoAsset = { url: logoUrl };
 
 type OperaLogoMarkProps = {
   className?: string;
